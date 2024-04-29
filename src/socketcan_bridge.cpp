@@ -39,8 +39,10 @@ public:
     setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
 
     ifreq ifr;
-    strcpy(ifr.ifr_name, interface.c_str());
-    ioctl(socket_, SIOCGIFINDEX, &ifr);
+    strncpy(ifr.ifr_name, interface.c_str(), sizeof(ifr.ifr_name));
+    if (ioctl(socket_, SIOCGIFINDEX, &ifr) < 0) {
+      throw std::system_error(errno, std::generic_category());
+    };
 
     sockaddr_can addr;
     memset(&addr, 0, sizeof(addr));
@@ -62,12 +64,12 @@ public:
     frame.can_id = msg.id;
     frame.len = msg.dlc;
     std::copy(msg.data.begin(), msg.data.end(), frame.data);
-    RCLCPP_INFO(logger_, "Sending %s", to_string(msg).c_str());
+    RCLCPP_DEBUG(logger_, "Sending %s", to_string(msg).c_str());
     auto n = ::write(socket_, &frame, sizeof(frame));
     if (n < 0) {
       throw std::system_error(errno, std::generic_category());
     }
-    RCLCPP_INFO(logger_, "Wrote %zd bytes to the socket", n);
+    RCLCPP_DEBUG(logger_, "Wrote %zd bytes to the socket", n);
   }
 
   void close()
@@ -105,7 +107,7 @@ private:
       msg.dlc = frame.len;
       std::copy_n(frame.data, sizeof(frame.data), msg.data.begin());
 
-      RCLCPP_INFO(logger_, "Received %s", to_string(msg).c_str());
+      RCLCPP_DEBUG(logger_, "Received %s", to_string(msg).c_str());
       receive_callback_(msg);
     }
     RCLCPP_INFO(logger_, "Read loop stopped");

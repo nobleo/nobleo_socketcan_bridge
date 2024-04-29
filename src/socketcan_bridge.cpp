@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
+#include <can_msgs/msg/frame.hpp>
 #include <cstdio>
 #include <rclcpp/rclcpp.hpp>
 #include <thread>
@@ -11,7 +12,12 @@
 class SocketCanBridge
 {
 public:
-  SocketCanBridge(rclcpp::Logger logger, const std::string & interface) : logger_(logger)
+  using CanCallback = std::function<void(const can_msgs::msg::Frame &)>;
+
+  SocketCanBridge(
+    rclcpp::Logger logger, rclcpp::Clock::SharedPtr clock, const std::string & interface,
+    const CanCallback & receive_callback)
+  : logger_(logger), clock_(clock), receive_callback_(receive_callback)
   {
     using std::placeholders::_1;
 
@@ -19,21 +25,21 @@ public:
       throw std::system_error(errno, std::generic_category());
     }
 
-    struct timeval tv;
+    timeval tv;
     tv.tv_sec = 1;
     tv.tv_usec = 0;
     setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
 
-    struct ifreq ifr;
+    ifreq ifr;
     strcpy(ifr.ifr_name, interface.c_str());
     ioctl(socket_, SIOCGIFINDEX, &ifr);
 
-    struct sockaddr_can addr;
+    sockaddr_can addr;
     memset(&addr, 0, sizeof(addr));
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    if (bind(socket_, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    if (bind(socket_, (sockaddr *)&addr, sizeof(addr)) < 0) {
       throw std::system_error(errno, std::generic_category());
     }
 
@@ -42,7 +48,18 @@ public:
 
   ~SocketCanBridge() { close(); }
 
-  void write() {}
+  void write(const can_msgs::msg::Frame & msg)
+  {
+    can_frame frame;
+    frame.can_id = msg.id;
+    frame.len = msg.dlc;
+    std::copy(msg.data.begin(), msg.data.end(), frame.data);
+    auto n = ::write(socket_, &frame, sizeof(frame));
+    if (n < 0) {
+      throw std::system_error(errno, std::generic_category());
+    }
+    RCLCPP_INFO(logger_, "Wrote %zd bytes to the socket", n);
+  }
 
   void close()
   {
@@ -63,24 +80,35 @@ private:
   {
     RCLCPP_INFO(logger_, "Read loop started");
     while (!stoken.stop_requested()) {
-      struct can_frame frame;
-      auto nbytes = read(socket_, &frame, sizeof(struct can_frame));
+      can_frame frame;
+      auto nbytes = read(socket_, &frame, sizeof(can_frame));
       if (nbytes < 0) {
         if (errno == EAGAIN) continue;
         throw std::system_error(errno, std::generic_category());
       }
+      if (nbytes != sizeof(frame)) {
+        throw std::runtime_error("Partial CAN frame received");
+      }
 
       printf("0x%03X [%d] ", frame.can_id, frame.can_dlc);
-
       for (auto i = 0; i < frame.can_dlc; i++) printf("%02X ", frame.data[i]);
-
       printf("\r\n");
+
+      can_msgs::msg::Frame msg;
+      msg.header.stamp = clock_->now();
+      msg.id = frame.can_id;
+      msg.dlc = frame.len;
+      std::copy_n(frame.data, sizeof(frame.data), msg.data.begin());
+
+      receive_callback_(msg);
     }
     RCLCPP_INFO(logger_, "Read loop stopped");
   }
 
   rclcpp::Logger logger_;
+  rclcpp::Clock::SharedPtr clock_;
   int socket_;
+  CanCallback receive_callback_;
   std::jthread read_thread_;
 };
 
@@ -89,7 +117,15 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto node = std::make_shared<rclcpp::Node>("socketcan_bridge");
-  SocketCanBridge bridge{node->get_logger(), "vcan0"};
+
+  auto can_pub = node->create_publisher<can_msgs::msg::Frame>("~/rx", 100);
+  SocketCanBridge::CanCallback cb = [&can_pub](const can_msgs::msg::Frame & msg) {
+    can_pub->publish(msg);
+  };
+
+  SocketCanBridge bridge{node->get_logger(), node->get_clock(), "vcan0", cb};
+  auto can_sub = node->create_subscription<can_msgs::msg::Frame>(
+    "~/tx", 100, [&bridge](can_msgs::msg::Frame::ConstSharedPtr msg) { bridge.write(*msg); });
 
   rclcpp::experimental::executors::EventsExecutor executor;
   executor.add_node(node);

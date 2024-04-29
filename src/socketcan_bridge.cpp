@@ -1,13 +1,21 @@
+#include <fmt/core.h>
 #include <linux/can/raw.h>
 #include <net/if.h>
-#include <netinet/in.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
 #include <can_msgs/msg/frame.hpp>
-#include <cstdio>
-#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/experimental/executors/events_executor/events_executor.hpp>
 #include <thread>
+
+std::string to_string(const can_msgs::msg::Frame & msg)
+{
+  auto result = fmt::format("{:0>3X} [{}]", msg.id, msg.dlc);
+  for (auto i = 0; i < msg.dlc; ++i) {
+    result += fmt::format(" {:0>2X}", msg.data[i]);
+  }
+  return result;
+}
 
 class SocketCanBridge
 {
@@ -54,6 +62,7 @@ public:
     frame.can_id = msg.id;
     frame.len = msg.dlc;
     std::copy(msg.data.begin(), msg.data.end(), frame.data);
+    RCLCPP_INFO(logger_, "Sending %s", to_string(msg).c_str());
     auto n = ::write(socket_, &frame, sizeof(frame));
     if (n < 0) {
       throw std::system_error(errno, std::generic_category());
@@ -90,16 +99,13 @@ private:
         throw std::runtime_error("Partial CAN frame received");
       }
 
-      printf("0x%03X [%d] ", frame.can_id, frame.can_dlc);
-      for (auto i = 0; i < frame.can_dlc; i++) printf("%02X ", frame.data[i]);
-      printf("\r\n");
-
       can_msgs::msg::Frame msg;
       msg.header.stamp = clock_->now();
       msg.id = frame.can_id;
       msg.dlc = frame.len;
       std::copy_n(frame.data, sizeof(frame.data), msg.data.begin());
 
+      RCLCPP_INFO(logger_, "Received %s", to_string(msg).c_str());
       receive_callback_(msg);
     }
     RCLCPP_INFO(logger_, "Read loop stopped");

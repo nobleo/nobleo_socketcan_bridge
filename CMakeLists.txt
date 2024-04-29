@@ -14,6 +14,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 find_package(can_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(fmt REQUIRED)
 
 add_executable(socketcan_bridge src/socketcan_bridge.cpp)
 target_include_directories(socketcan_bridge PUBLIC
@@ -23,7 +24,7 @@ ament_target_dependencies(socketcan_bridge
   can_msgs
   rclcpp
 )
-target_compile_features(socketcan_bridge PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_link_libraries(socketcan_bridge fmt::fmt)
 
 install(TARGETS socketcan_bridge
   DESTINATION lib/${PROJECT_NAME})

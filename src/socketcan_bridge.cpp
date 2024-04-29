@@ -6,6 +6,7 @@
 
 #include <can_msgs/msg/frame.hpp>
 #include <rclcpp/experimental/executors/events_executor/events_executor.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <thread>
 
 namespace nobleo_socketcan_bridge
@@ -126,29 +127,26 @@ private:
   CanCallback receive_callback_;
   std::jthread read_thread_;
 };
+
+class SocketCanBridgeNode : public rclcpp::Node
+{
+public:
+  SocketCanBridgeNode(const rclcpp::NodeOptions & options)
+  : rclcpp::Node("socketcan_bridge", options),
+    can_pub(this->create_publisher<can_msgs::msg::Frame>("~/rx", 100)),
+    bridge(
+      this->get_logger(), this->get_clock(), this->declare_parameter("interface", "can0"),
+      [this](const can_msgs::msg::Frame & msg) { can_pub->publish(msg); }),
+    can_sub(this->create_subscription<can_msgs::msg::Frame>(
+      "~/tx", 100, [this](can_msgs::msg::Frame::ConstSharedPtr msg) { bridge.write(*msg); }))
+  {
+  }
+
+private:
+  rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr can_pub;
+  SocketCanBridge bridge;
+  rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr can_sub;
+};
 }  // namespace nobleo_socketcan_bridge
 
-using nobleo_socketcan_bridge::SocketCanBridge;
-
-int main(int argc, char ** argv)
-{
-  rclcpp::init(argc, argv);
-
-  auto node = std::make_shared<rclcpp::Node>("socketcan_bridge");
-
-  auto can_pub = node->create_publisher<can_msgs::msg::Frame>("~/rx", 100);
-  SocketCanBridge::CanCallback cb = [&can_pub](const can_msgs::msg::Frame & msg) {
-    can_pub->publish(msg);
-  };
-
-  auto interface = node->declare_parameter("interface", "can0");
-  SocketCanBridge bridge{node->get_logger(), node->get_clock(), interface, cb};
-  auto can_sub = node->create_subscription<can_msgs::msg::Frame>(
-    "~/tx", 100, [&bridge](can_msgs::msg::Frame::ConstSharedPtr msg) { bridge.write(*msg); });
-
-  rclcpp::experimental::executors::EventsExecutor executor;
-  executor.add_node(node);
-  executor.spin();
-
-  return EXIT_SUCCESS;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(nobleo_socketcan_bridge::SocketCanBridgeNode)

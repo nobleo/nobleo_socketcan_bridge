@@ -13,25 +13,48 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 find_package(can_msgs REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(fmt REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 
-add_executable(socketcan_bridge src/socketcan_bridge.cpp)
-target_include_directories(socketcan_bridge PUBLIC
+add_library(socketcan_bridge_component src/socketcan_bridge.cpp)
+target_include_directories(socketcan_bridge_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(socketcan_bridge
+ament_target_dependencies(socketcan_bridge_component
   can_msgs
   rclcpp
+  rclcpp_components
 )
-target_link_libraries(socketcan_bridge fmt::fmt)
+target_link_libraries(socketcan_bridge_component fmt::fmt)
 
-install(TARGETS socketcan_bridge
-  DESTINATION lib/${PROJECT_NAME})
+rclcpp_components_register_node(
+    socketcan_bridge_component
+    PLUGIN "nobleo_socketcan_bridge::SocketCanBridgeNode"
+    EXECUTABLE socketcan_bridge
+)
+
+install(
+  TARGETS socketcan_bridge_component
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_export_include_directories(
+  include
+)
+ament_export_libraries(
+  socketcan_bridge_component
+)
+ament_export_targets(
+  export_${PROJECT_NAME}
+)
 
 ament_package()

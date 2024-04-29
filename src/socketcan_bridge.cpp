@@ -60,6 +60,11 @@ public:
 
   ~SocketCanBridge() { close(); }
 
+  SocketCanBridge(const SocketCanBridge &) = delete;
+  SocketCanBridge(SocketCanBridge &&) noexcept = delete;
+  SocketCanBridge & operator=(const SocketCanBridge & other) = delete;
+  SocketCanBridge & operator=(SocketCanBridge && other) noexcept = delete;
+
   void write(const can_msgs::msg::Frame & msg)
   {
     can_frame frame;

@@ -1,5 +1,7 @@
 <launch>
-    <executable cmd="ros2 topic pub -r 1000 -p 10000 /bridge1/tx can_msgs/msg/Frame '{}'"/>
+    <arg name="rate" default="5000"/>
+
+    <executable cmd="ros2 topic pub -r $(var rate) -p $(var rate)0 /bridge1/tx can_msgs/msg/Frame '{}'"/>
 
     <node name="bridge1" pkg="nobleo_socketcan_bridge" exec="socketcan_bridge">
         <param name="interface" value="vcan0"/>
@@ -9,5 +11,5 @@
         <param name="interface" value="vcan0"/>
     </node>
 
-    <executable cmd="ros2 topic hz /bridge2/rx -w 1000" output="screen"/>
+    <executable cmd="ros2 topic hz /bridge2/rx -w $(var rate)" output="screen"/>
 </launch>

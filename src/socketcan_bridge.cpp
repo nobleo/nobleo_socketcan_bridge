@@ -8,6 +8,8 @@
 #include <rclcpp/experimental/executors/events_executor/events_executor.hpp>
 #include <thread>
 
+namespace nobleo_socketcan_bridge
+{
 std::string to_string(const can_msgs::msg::Frame & msg)
 {
   auto result = fmt::format("{:0>3X} [{}]", msg.id, msg.dlc);
@@ -23,7 +25,7 @@ public:
   using CanCallback = std::function<void(const can_msgs::msg::Frame &)>;
 
   SocketCanBridge(
-    rclcpp::Logger logger, rclcpp::Clock::SharedPtr clock, const std::string & interface,
+    const rclcpp::Logger & logger, rclcpp::Clock::SharedPtr clock, const std::string & interface,
     const CanCallback & receive_callback)
   : logger_(logger), clock_(clock), receive_callback_(receive_callback)
   {
@@ -119,6 +121,9 @@ private:
   CanCallback receive_callback_;
   std::jthread read_thread_;
 };
+}  // namespace nobleo_socketcan_bridge
+
+using nobleo_socketcan_bridge::SocketCanBridge;
 
 int main(int argc, char ** argv)
 {
@@ -131,7 +136,8 @@ int main(int argc, char ** argv)
     can_pub->publish(msg);
   };
 
-  SocketCanBridge bridge{node->get_logger(), node->get_clock(), "vcan0", cb};
+  auto interface = node->declare_parameter("interface", "can0");
+  SocketCanBridge bridge{node->get_logger(), node->get_clock(), interface, cb};
   auto can_sub = node->create_subscription<can_msgs::msg::Frame>(
     "~/tx", 100, [&bridge](can_msgs::msg::Frame::ConstSharedPtr msg) { bridge.write(*msg); });
 

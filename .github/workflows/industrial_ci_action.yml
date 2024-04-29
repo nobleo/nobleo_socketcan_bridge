@@ -14,12 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: # matrix is the product of entries
-        ROS_DISTRO: [melodic]
-        ROS_REPO: [testing, main]
-        # exclude: # specific configuration can be excludes
-        #   - {ROS_DISTRO: melodic, ROS_REPO: testing}
-        include: # add additional configurations
-          - {ROS_DISTRO: kinetic, ROS_REPO: testing}
+        ROS_DISTRO: [humble, iron]
+        ROS_REPO: [main]
     env:
       CCACHE_DIR: "${{ github.workspace }}/.ccache" # directory for ccache (and how we enable ccache in industrial_ci)
     steps:

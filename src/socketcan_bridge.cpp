@@ -44,14 +44,14 @@ public:
     strncpy(ifr.ifr_name, interface.c_str(), sizeof(ifr.ifr_name));
     if (ioctl(socket_, SIOCGIFINDEX, &ifr) < 0) {
       throw std::system_error(errno, std::generic_category());
-    };
+    }
 
     sockaddr_can addr;
     memset(&addr, 0, sizeof(addr));
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    if (bind(socket_, (sockaddr *)&addr, sizeof(addr)) < 0) {
+    if (bind(socket_, reinterpret_cast<sockaddr *>(&addr), sizeof(addr)) < 0) {
       throw std::system_error(errno, std::generic_category());
     }
 

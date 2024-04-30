@@ -2,16 +2,17 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <rclcpp/node.hpp>
+#pragma once
 
 #include "nobleo_socketcan_bridge/socketcan_bridge.hpp"
+#include "rclcpp/node.hpp"
 
 namespace nobleo_socketcan_bridge
 {
 class SocketCanBridgeNode : public rclcpp::Node
 {
 public:
-  SocketCanBridgeNode(const rclcpp::NodeOptions & options);
+  explicit SocketCanBridgeNode(const rclcpp::NodeOptions & options);
 
 private:
   rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr can_pub;

@@ -2,10 +2,14 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <can_msgs/msg/frame.hpp>
-#include <rclcpp/clock.hpp>
-#include <rclcpp/logger.hpp>
+#pragma once
+
+#include <string>
 #include <thread>
+
+#include "can_msgs/msg/frame.hpp"
+#include "rclcpp/clock.hpp"
+#include "rclcpp/logger.hpp"
 
 namespace rclcpp
 {

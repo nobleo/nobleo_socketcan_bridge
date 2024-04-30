@@ -1,6 +1,9 @@
-#include <rclcpp/experimental/executors/events_executor/events_executor.hpp>
+// Copyright (C) 2024 Nobleo Technology B.V.
+//
+// SPDX-License-Identifier: Apache-2.0
 
 #include "nobleo_socketcan_bridge/socketcan_bridge_node.hpp"
+#include "rclcpp/experimental/executors/events_executor/events_executor.hpp"
 
 using nobleo_socketcan_bridge::SocketCanBridgeNode;
 

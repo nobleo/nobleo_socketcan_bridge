@@ -27,7 +27,7 @@ public:
 
   SocketCanBridge(
     const rclcpp::Logger & logger, rclcpp::Clock::SharedPtr clock, const std::string & interface,
-    const CanCallback & receive_callback)
+    double read_timeout, const CanCallback & receive_callback)
   : logger_(logger), clock_(clock), receive_callback_(receive_callback)
   {
     using std::placeholders::_1;
@@ -36,9 +36,10 @@ public:
       throw std::system_error(errno, std::generic_category());
     }
 
+    auto microseconds = std::lround(read_timeout * 1'000'000);
     timeval tv;
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;
+    tv.tv_sec = microseconds / 1'000'000;
+    tv.tv_usec = microseconds - (tv.tv_sec * 1'000'000);
     setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
 
     ifreq ifr;
@@ -136,6 +137,7 @@ public:
     can_pub(this->create_publisher<can_msgs::msg::Frame>("~/rx", 100)),
     bridge(
       this->get_logger(), this->get_clock(), this->declare_parameter("interface", "can0"),
+      this->declare_parameter("read_timeout", 1.0),
       [this](const can_msgs::msg::Frame & msg) { can_pub->publish(msg); }),
     can_sub(this->create_subscription<can_msgs::msg::Frame>(
       "~/tx", 100, [this](can_msgs::msg::Frame::ConstSharedPtr msg) { bridge.write(*msg); }))

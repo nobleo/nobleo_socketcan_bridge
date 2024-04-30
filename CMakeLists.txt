@@ -17,7 +17,10 @@ find_package(fmt REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 
-add_library(socketcan_bridge_component src/socketcan_bridge.cpp)
+add_library(socketcan_bridge_component
+  src/socketcan_bridge.cpp
+  src/socketcan_bridge_node.cpp
+)
 target_include_directories(socketcan_bridge_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)

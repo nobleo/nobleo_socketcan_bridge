@@ -8,7 +8,6 @@
 
 #include <cmath>
 #include <rclcpp/logging.hpp>
-#include <rclcpp/node.hpp>
 
 namespace nobleo_socketcan_bridge
 {

@@ -1,3 +1,5 @@
+#include <rclcpp/node.hpp>
+
 #include "nobleo_socketcan_bridge/socketcan_bridge.hpp"
 
 namespace nobleo_socketcan_bridge

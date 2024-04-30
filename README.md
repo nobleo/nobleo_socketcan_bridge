@@ -5,7 +5,7 @@ The packages provides functionality to expose CAN frames from SocketCAN to a ROS
 Differences between this package and `ros2_socketcan`
 
 - No loopback, i.e. CAN frames that are send are not received by the same node
-- No lifecycle management, just launch it
+- No lifecycle management, just run it
 - Less CPU usage
 
 ## Nodes

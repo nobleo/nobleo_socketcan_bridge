@@ -35,7 +35,7 @@ public:
   SocketCanBridge & operator=(const SocketCanBridge & other) = delete;
   SocketCanBridge & operator=(SocketCanBridge && other) noexcept = delete;
 
-  void write(const can_msgs::msg::Frame & msg);
+  void __attribute__((noinline)) write(const can_msgs::msg::Frame & msg);
 
   void close();
 

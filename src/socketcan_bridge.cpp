@@ -5,6 +5,7 @@
 #include "nobleo_socketcan_bridge/socketcan_bridge.hpp"
 
 #include <fmt/core.h>
+#include <fmt/ostream.h>
 #include <linux/can/raw.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -16,14 +17,13 @@
 
 namespace nobleo_socketcan_bridge
 {
-
-std::string to_string(const can_msgs::msg::Frame & msg)
+std::ostream & operator<<(std::ostream & os, const can_msgs::msg::Frame & msg)
 {
-  auto result = fmt::format("{:0>3X} [{}]", msg.id, msg.dlc);
+  fmt::print(os, "{:0>3X} [{}]", msg.id, msg.dlc);
   for (auto i = 0; i < msg.dlc; ++i) {
-    result += fmt::format(" {:0>2X}", msg.data[i]);
+    fmt::print(os, " {:0>2X}", msg.data[i]);
   }
-  return result;
+  return os;
 }
 
 SocketCanBridge::SocketCanBridge(
@@ -69,7 +69,7 @@ void SocketCanBridge::write(const can_msgs::msg::Frame & msg)
   frame.can_id = msg.id;
   frame.len = msg.dlc;
   std::copy(msg.data.begin(), msg.data.end(), frame.data);
-  RCLCPP_DEBUG(logger_, "Sending %s", to_string(msg).c_str());
+  RCLCPP_DEBUG_STREAM(logger_, "Sending " << msg);
   auto n = ::write(socket_, &frame, sizeof(frame));
   if (n < 0) {
     throw std::system_error(errno, std::generic_category());
@@ -111,7 +111,7 @@ void SocketCanBridge::read_loop(std::stop_token stoken)
     msg.dlc = frame.len;
     std::copy_n(frame.data, sizeof(frame.data), msg.data.begin());
 
-    RCLCPP_DEBUG(logger_, "Received %s", to_string(msg).c_str());
+    RCLCPP_DEBUG_STREAM(logger_, "Received " << msg);
     receive_callback_(msg);
   }
   RCLCPP_INFO(logger_, "Read loop stopped");

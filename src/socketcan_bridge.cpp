@@ -37,6 +37,8 @@ SocketCanBridge::SocketCanBridge(
     throw std::system_error(errno, std::generic_category());
   }
 
+  // When SIGINT is received, the program needs to quit. But a `read()` call can't be interrupted.
+  // So I use SO_RCVTIMEO to make all reads return within `read_timeout` seconds.
   auto microseconds = std::lround(read_timeout * 1'000'000);
   timeval tv;
   tv.tv_sec = microseconds / 1'000'000;

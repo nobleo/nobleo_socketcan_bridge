@@ -1,3 +1,7 @@
+// Copyright (C) 2024 Nobleo Technology B.V.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include "nobleo_socketcan_bridge/socketcan_bridge.hpp"
 
 #include <fmt/core.h>

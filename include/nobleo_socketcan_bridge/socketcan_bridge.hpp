@@ -1,3 +1,7 @@
+// Copyright (C) 2024 Nobleo Technology B.V.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include <can_msgs/msg/frame.hpp>
 #include <rclcpp/clock.hpp>
 #include <rclcpp/logger.hpp>

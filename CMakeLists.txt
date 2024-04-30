@@ -1,3 +1,7 @@
+# Copyright (C) 2024 Nobleo Technology B.V.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 cmake_minimum_required(VERSION 3.8)
 project(nobleo_socketcan_bridge)
 

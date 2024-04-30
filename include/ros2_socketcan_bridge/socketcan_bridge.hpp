@@ -17,7 +17,7 @@ class Node;
 class Clock;
 }  // namespace rclcpp
 
-namespace nobleo_socketcan_bridge
+namespace ros2_socketcan_bridge
 {
 class SocketCanBridge
 {
@@ -49,4 +49,4 @@ private:
   std::jthread read_thread_;
 };
 
-}  // namespace nobleo_socketcan_bridge
+}  // namespace ros2_socketcan_bridge

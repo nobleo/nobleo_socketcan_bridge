@@ -8,7 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 -->
 
 <package format="3">
-  <name>nobleo_socketcan_bridge</name>
+  <name>ros2_socketcan_bridge</name>
   <version>0.0.0</version>
   <description>Simple wrapper around SocketCAN</description>
   <maintainer email="ramon.wijnands@nobleo.nl">Ramon Wijnands</maintainer>

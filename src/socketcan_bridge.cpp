@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "nobleo_socketcan_bridge/socketcan_bridge.hpp"
+#include "ros2_socketcan_bridge/socketcan_bridge.hpp"
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
@@ -15,7 +15,7 @@
 
 #include "rclcpp/logging.hpp"
 
-namespace nobleo_socketcan_bridge
+namespace ros2_socketcan_bridge
 {
 std::ostream & operator<<(std::ostream & os, const can_msgs::msg::Frame & msg)
 {
@@ -117,4 +117,4 @@ void SocketCanBridge::read_loop(std::stop_token stoken)
   RCLCPP_INFO(logger_, "Read loop stopped");
 }
 
-}  // namespace nobleo_socketcan_bridge
+}  // namespace ros2_socketcan_bridge

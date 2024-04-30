@@ -4,7 +4,7 @@ Copyright (C) 2024 Nobleo Technology B.V.
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# nobleo_socketcan_bridge
+# ros2_socketcan_bridge
 The packages provides functionality to expose CAN frames from SocketCAN to a ROS Topic.
 
 ## Overview

@@ -9,11 +9,11 @@ SPDX-License-Identifier: Apache-2.0
 
     <executable cmd="ros2 topic pub -r $(var rate) -p $(var rate)0 /bridge1/tx can_msgs/msg/Frame '{}'"/>
 
-    <node name="bridge1" pkg="nobleo_socketcan_bridge" exec="socketcan_bridge">
+    <node name="bridge1" pkg="ros2_socketcan_bridge" exec="socketcan_bridge">
         <param name="interface" value="vcan0"/>
     </node>
 
-    <node name="bridge2" pkg="nobleo_socketcan_bridge" exec="socketcan_bridge">
+    <node name="bridge2" pkg="ros2_socketcan_bridge" exec="socketcan_bridge">
         <param name="interface" value="vcan0"/>
     </node>
 

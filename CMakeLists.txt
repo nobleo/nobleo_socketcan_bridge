@@ -41,9 +41,6 @@ rclcpp_components_register_node(
     EXECUTABLE socketcan_bridge
 )
 
-add_executable(socketcan_bridge_ee src/socketcan_bridge_ee.cpp)
-target_link_libraries(socketcan_bridge_ee socketcan_bridge_component)
-
 install(
   TARGETS socketcan_bridge_component
   EXPORT export_${PROJECT_NAME}
@@ -52,9 +49,18 @@ install(
   RUNTIME DESTINATION bin
 )
 
-install(TARGETS socketcan_bridge_ee
-  DESTINATION lib/${PROJECT_NAME}
-)
+# EventsExecutor is supported from rclcpp version 21 or greater (iron)
+if(rclcpp_VERSION_MAJOR GREATER_EQUAL 21)
+  message(STATUS "EventsExecutor support enabled")
+  add_executable(socketcan_bridge_ee src/socketcan_bridge_ee.cpp)
+  target_link_libraries(socketcan_bridge_ee socketcan_bridge_component)
+
+  install(TARGETS socketcan_bridge_ee
+    DESTINATION lib/${PROJECT_NAME}
+  )
+else()
+  message(STATUS "EventsExecutor support disabled")
+endif()
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

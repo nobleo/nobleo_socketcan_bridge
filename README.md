@@ -16,6 +16,7 @@ Differences between this package and `ros2_socketcan`
 
 ## Nodes
 The main node (`socketcan_bridge`) is also available as dynamically loadable component.
+The node `socketcan_bridge_ee` is also provided that uses the `EventsExecutor` that run a bit more efficient.
 
 ### socketcan_bridge
 

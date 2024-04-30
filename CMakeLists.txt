@@ -41,12 +41,19 @@ rclcpp_components_register_node(
     EXECUTABLE socketcan_bridge
 )
 
+add_executable(socketcan_bridge_ee src/socketcan_bridge_ee.cpp)
+target_link_libraries(socketcan_bridge_ee socketcan_bridge_component)
+
 install(
   TARGETS socketcan_bridge_component
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
+)
+
+install(TARGETS socketcan_bridge_ee
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

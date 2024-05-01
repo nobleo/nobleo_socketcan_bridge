@@ -60,17 +60,17 @@ SocketCanBridge::SocketCanBridge(
     throw std::system_error(errno, std::generic_category());
   }
 
-  read_thread_ = std::jthread{std::bind(&SocketCanBridge::read_loop, this, _1)};
+  receive_thread_ = std::jthread{std::bind(&SocketCanBridge::receive_loop, this, _1)};
 }
 
-void SocketCanBridge::write(const can_msgs::msg::Frame & msg)
+void SocketCanBridge::send(const can_msgs::msg::Frame & msg)
 {
   can_frame frame;
   frame.can_id = msg.id;
   frame.len = msg.dlc;
   std::copy(msg.data.begin(), msg.data.end(), frame.data);
   RCLCPP_DEBUG_STREAM(logger_, "Sending " << msg);
-  auto n = ::write(socket_, &frame, sizeof(frame));
+  auto n = write(socket_, &frame, sizeof(frame));
   if (n < 0) {
     throw std::system_error(errno, std::generic_category());
   }
@@ -79,11 +79,11 @@ void SocketCanBridge::write(const can_msgs::msg::Frame & msg)
 
 void SocketCanBridge::close()
 {
-  RCLCPP_INFO(logger_, "Stopping the read thread");
-  read_thread_.request_stop();
+  RCLCPP_INFO(logger_, "Stopping the receive thread");
+  receive_thread_.request_stop();
 
-  RCLCPP_INFO(logger_, "Waiting for the read thread to stop");
-  read_thread_.join();
+  RCLCPP_INFO(logger_, "Waiting for the receive thread to stop");
+  receive_thread_.join();
 
   RCLCPP_INFO(logger_, "Closing the socket");
   if (::close(socket_) < 0) {
@@ -91,9 +91,9 @@ void SocketCanBridge::close()
   }
 }
 
-void SocketCanBridge::read_loop(std::stop_token stoken)
+void SocketCanBridge::receive_loop(std::stop_token stoken)
 {
-  RCLCPP_INFO(logger_, "Read loop started");
+  RCLCPP_INFO(logger_, "Receive loop started");
   while (!stoken.stop_requested()) {
     can_frame frame;
     auto nbytes = read(socket_, &frame, sizeof(can_frame));
@@ -114,7 +114,7 @@ void SocketCanBridge::read_loop(std::stop_token stoken)
     RCLCPP_DEBUG_STREAM(logger_, "Received " << msg);
     receive_callback_(msg);
   }
-  RCLCPP_INFO(logger_, "Read loop stopped");
+  RCLCPP_INFO(logger_, "Receive loop stopped");
 }
 
 }  // namespace ros2_socketcan_bridge

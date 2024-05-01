@@ -17,7 +17,7 @@ SocketCanBridgeNode::SocketCanBridgeNode(const rclcpp::NodeOptions & options)
     this->declare_parameter("read_timeout", 1.0),
     [this](const can_msgs::msg::Frame & msg) { can_pub->publish(msg); }),
   can_sub(this->create_subscription<can_msgs::msg::Frame>(
-    "~/tx", 100, [this](can_msgs::msg::Frame::ConstSharedPtr msg) { bridge.write(*msg); }))
+    "~/tx", 100, [this](can_msgs::msg::Frame::ConstSharedPtr msg) { bridge.send(*msg); }))
 {
 }
 

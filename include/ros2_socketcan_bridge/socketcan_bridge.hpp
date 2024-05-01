@@ -35,18 +35,18 @@ public:
   SocketCanBridge & operator=(const SocketCanBridge & other) = delete;
   SocketCanBridge & operator=(SocketCanBridge && other) noexcept = delete;
 
-  void __attribute__((noinline)) write(const can_msgs::msg::Frame & msg);
+  void send(const can_msgs::msg::Frame & msg);
 
   void close();
 
 private:
-  void read_loop(std::stop_token stoken);
+  void receive_loop(std::stop_token stoken);
 
   rclcpp::Logger logger_;
   rclcpp::Clock::SharedPtr clock_;
   int socket_;
   CanCallback receive_callback_;
-  std::jthread read_thread_;
+  std::jthread receive_thread_;
 };
 
 }  // namespace ros2_socketcan_bridge

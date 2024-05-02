@@ -11,6 +11,8 @@
 #include "rclcpp/clock.hpp"
 #include "rclcpp/logger.hpp"
 
+// forward declarations
+struct can_frame;
 namespace rclcpp
 {
 class Node;
@@ -48,5 +50,10 @@ private:
   CanCallback receive_callback_;
   std::jthread receive_thread_;
 };
+
+can_frame from_msg(const can_msgs::msg::Frame & msg);
+
+can_msgs::msg::Frame to_msg(const can_frame & frame);
+;
 
 }  // namespace ros2_socketcan_bridge

@@ -63,8 +63,13 @@ else()
 endif()
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest)
   find_package(ament_lint_auto REQUIRED)
+
   ament_lint_auto_find_test_dependencies()
+
+  ament_add_gtest(unittests test/unittests.cpp)
+  target_link_libraries(unittests socketcan_bridge_component)
 endif()
 
 ament_export_include_directories(

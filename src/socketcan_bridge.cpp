@@ -6,7 +6,7 @@
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
-#include <linux/can/raw.h>
+#include <linux/can.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -65,13 +65,7 @@ SocketCanBridge::SocketCanBridge(
 
 void SocketCanBridge::send(const can_msgs::msg::Frame & msg)
 {
-  can_frame frame;
-  frame.can_id = msg.id;
-  frame.len = msg.dlc;
-  if (msg.is_extended) {
-    frame.can_id |= CAN_EFF_FLAG;
-  }
-  std::copy(msg.data.begin(), msg.data.end(), frame.data);
+  auto frame = from_msg(msg);
   RCLCPP_DEBUG_STREAM(logger_, "Sending " << msg);
   auto n = write(socket_, &frame, sizeof(frame));
   if (n < 0) {
@@ -107,18 +101,40 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
     if (nbytes != sizeof(frame)) {
       throw std::runtime_error("Partial CAN frame received");
     }
-    const bool ext = ((frame.can_id & CAN_EFF_FLAG) == CAN_EFF_FLAG);
-    can_msgs::msg::Frame msg;
+
+    auto msg = to_msg(frame);
     msg.header.stamp = clock_->now();
-    msg.id = frame.can_id & (ext ? CAN_EFF_MASK : CAN_SFF_MASK);
-    msg.dlc = frame.len;
-    msg.is_extended = ext;
-    std::copy_n(frame.data, sizeof(frame.data), msg.data.begin());
 
     RCLCPP_DEBUG_STREAM(logger_, "Received " << msg);
     receive_callback_(msg);
   }
   RCLCPP_INFO(logger_, "Receive loop stopped");
+}
+
+can_frame from_msg(const can_msgs::msg::Frame & msg)
+{
+  canid_t id = msg.id;
+  if (msg.is_rtr) id |= CAN_RTR_FLAG;
+  if (msg.is_extended) id |= CAN_EFF_FLAG;
+  if (msg.is_error) id |= CAN_ERR_FLAG;
+
+  can_frame frame;
+  frame.can_id = id;
+  frame.len = msg.dlc;
+  std::copy(msg.data.begin(), msg.data.end(), frame.data);
+  return frame;
+}
+
+can_msgs::msg::Frame to_msg(const can_frame & frame)
+{
+  can_msgs::msg::Frame msg;
+  msg.is_rtr = (frame.can_id & CAN_RTR_FLAG) == CAN_RTR_FLAG;
+  msg.is_extended = (frame.can_id & CAN_EFF_FLAG) == CAN_EFF_FLAG;
+  msg.is_error = (frame.can_id & CAN_ERR_FLAG) == CAN_ERR_FLAG;
+  msg.id = frame.can_id & (msg.is_extended ? CAN_EFF_MASK : CAN_SFF_MASK);
+  msg.dlc = frame.len;
+  std::copy_n(frame.data, sizeof(frame.data), msg.data.begin());
+  return msg;
 }
 
 }  // namespace ros2_socketcan_bridge

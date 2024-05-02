@@ -68,8 +68,7 @@ void SocketCanBridge::send(const can_msgs::msg::Frame & msg)
   can_frame frame;
   frame.can_id = msg.id;
   frame.len = msg.dlc;
-  if(msg.is_extended)
-  {
+  if (msg.is_extended) {
     frame.can_id |= CAN_EFF_FLAG;
   }
   std::copy(msg.data.begin(), msg.data.end(), frame.data);

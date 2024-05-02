@@ -1,0 +1,21 @@
+<!--
+Copyright (C) 2024 Nobleo Technology B.V.
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<launch>
+    <arg name="rate" default="5000"/>
+
+    <executable cmd="ros2 topic pub -r $(var rate) -p $(var rate)0 /bridge1/tx can_msgs/msg/Frame '{}'"/>
+
+    <node name="bridge1" pkg="ros2_socketcan_bridge" exec="socketcan_bridge">
+        <param name="interface" value="vcan0"/>
+    </node>
+
+    <node name="bridge2" pkg="ros2_socketcan_bridge" exec="socketcan_bridge">
+        <param name="interface" value="vcan0"/>
+    </node>
+
+    <executable cmd="ros2 topic hz /bridge2/rx -w $(var rate)" output="screen"/>
+</launch>

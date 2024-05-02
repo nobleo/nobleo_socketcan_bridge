@@ -68,6 +68,9 @@ void SocketCanBridge::send(const can_msgs::msg::Frame & msg)
   can_frame frame;
   frame.can_id = msg.id;
   frame.len = msg.dlc;
+  if (msg.is_extended) {
+    frame.can_id |= CAN_EFF_FLAG;
+  }
   std::copy(msg.data.begin(), msg.data.end(), frame.data);
   RCLCPP_DEBUG_STREAM(logger_, "Sending " << msg);
   auto n = write(socket_, &frame, sizeof(frame));
@@ -104,11 +107,12 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
     if (nbytes != sizeof(frame)) {
       throw std::runtime_error("Partial CAN frame received");
     }
-
+    const bool ext = ((frame.can_id & CAN_EFF_FLAG) == CAN_EFF_FLAG);
     can_msgs::msg::Frame msg;
     msg.header.stamp = clock_->now();
-    msg.id = frame.can_id;
+    msg.id = frame.can_id & (ext ? CAN_EFF_MASK : CAN_SFF_MASK);
     msg.dlc = frame.len;
+    msg.is_extended = ext;
     std::copy_n(frame.data, sizeof(frame.data), msg.data.begin());
 
     RCLCPP_DEBUG_STREAM(logger_, "Received " << msg);

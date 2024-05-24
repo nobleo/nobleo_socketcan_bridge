@@ -63,7 +63,17 @@ SocketCanBridge::SocketCanBridge(
   receive_thread_ = std::jthread{std::bind(&SocketCanBridge::receive_loop, this, _1)};
 }
 
-void SocketCanBridge::send(const can_msgs::msg::Frame & msg)
+SocketCanBridge::~SocketCanBridge()
+{
+  try {
+    close();
+  } catch (const std::system_error & e) {
+    // closing the socket could fail, but we should not propagate exceptions out of the destructor
+    RCLCPP_ERROR(logger_, "%s", e.what());
+  }
+}
+
+void SocketCanBridge::send(const can_msgs::msg::Frame & msg) const
 {
   auto frame = from_msg(msg);
   RCLCPP_DEBUG_STREAM(logger_, "Sending " << msg);
@@ -88,7 +98,7 @@ void SocketCanBridge::close()
   }
 }
 
-void SocketCanBridge::receive_loop(std::stop_token stoken)
+void SocketCanBridge::receive_loop(std::stop_token stoken) const
 {
   RCLCPP_INFO(logger_, "Receive loop started");
   while (!stoken.stop_requested()) {
@@ -99,7 +109,8 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
       throw std::system_error(errno, std::generic_category());
     }
     if (nbytes != sizeof(frame)) {
-      throw std::runtime_error("Partial CAN frame received");
+      RCLCPP_ERROR(logger_, "Incomplete CAN frame received, skipping");
+      continue;
     }
 
     auto msg = to_msg(frame);

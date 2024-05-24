@@ -30,19 +30,19 @@ public:
     const rclcpp::Logger & logger, rclcpp::Clock::SharedPtr clock, const std::string & interface,
     double read_timeout, const CanCallback & receive_callback);
 
-  ~SocketCanBridge() { close(); }
+  ~SocketCanBridge();
 
   SocketCanBridge(const SocketCanBridge &) = delete;
   SocketCanBridge(SocketCanBridge &&) noexcept = delete;
   SocketCanBridge & operator=(const SocketCanBridge & other) = delete;
   SocketCanBridge & operator=(SocketCanBridge && other) noexcept = delete;
 
-  void send(const can_msgs::msg::Frame & msg);
+  void send(const can_msgs::msg::Frame & msg) const;
 
   void close();
 
 private:
-  void receive_loop(std::stop_token stoken);
+  void receive_loop(std::stop_token stoken) const;
 
   rclcpp::Logger logger_;
   rclcpp::Clock::SharedPtr clock_;

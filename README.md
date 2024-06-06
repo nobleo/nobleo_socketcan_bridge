@@ -37,10 +37,12 @@ The node `socketcan_bridge_ee` is also provided that uses the `EventsExecutor` t
 
 #### Parameters
 
-* `interface`
+* `interface` (default=`can0`)
   Name of the SocketCAN device, by default these devices are named can0 and upwards.
-* `read_timeout`
-  Maximum duration to wait for data on the file descriptor
+* `read_timeout` (default=`1.0`)
+  Maximum duration in seconds to wait for data on the file descriptor
+* `reconnect_timeout` (default=`5.0`)
+  Sleep duration in seconds before reconnecting to the SocketCAN device
 
 [can_msgs/Frame]: https://github.com/ros-industrial/ros_canopen/blob/dashing-devel/can_msgs/msg/Frame.msg
 

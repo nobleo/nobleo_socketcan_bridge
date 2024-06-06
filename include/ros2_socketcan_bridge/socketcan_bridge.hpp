@@ -28,7 +28,7 @@ public:
 
   SocketCanBridge(
     const rclcpp::Logger & logger, rclcpp::Clock::SharedPtr clock, const std::string & interface,
-    double read_timeout, const CanCallback & receive_callback);
+    double read_timeout, double reconnect_timeout, const CanCallback & receive_callback);
 
   ~SocketCanBridge();
 
@@ -42,10 +42,15 @@ public:
   void close();
 
 private:
-  void receive_loop(std::stop_token stoken) const;
+  void connect();
+  void ensure_connection(std::stop_token stoken);
+  void receive_loop(std::stop_token stoken);
 
   rclcpp::Logger logger_;
   rclcpp::Clock::SharedPtr clock_;
+  std::string interface_;
+  double read_timeout_;
+  double reconnect_timeout_;
   int socket_;
   CanCallback receive_callback_;
   std::jthread receive_thread_;

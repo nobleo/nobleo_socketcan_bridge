@@ -56,7 +56,8 @@ void SocketCanBridge::send(const can_msgs::msg::Frame & msg) const
   RCLCPP_DEBUG_STREAM(logger_, "Sending " << msg);
   auto n = write(socket_, &frame, sizeof(frame));
   if (n < 0) {
-    throw std::system_error(errno, std::generic_category());
+    RCLCPP_ERROR_THROTTLE(
+      logger_, *clock_, 5000, "Error writing to the socket: %s (%d)", strerror(errno), errno);
   }
   RCLCPP_DEBUG(logger_, "Wrote %zd bytes to the socket", n);
 }

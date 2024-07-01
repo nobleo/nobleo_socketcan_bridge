@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ros2_socketcan_bridge/socketcan_bridge_node.hpp"
+#include "nobleo_socketcan_bridge/socketcan_bridge_node.hpp"
 
 #include <rclcpp_components/register_node_macro.hpp>
 
-namespace ros2_socketcan_bridge
+namespace nobleo_socketcan_bridge
 {
 
 SocketCanBridgeNode::SocketCanBridgeNode(const rclcpp::NodeOptions & options)
@@ -21,5 +21,5 @@ SocketCanBridgeNode::SocketCanBridgeNode(const rclcpp::NodeOptions & options)
 {
 }
 
-}  // namespace ros2_socketcan_bridge
-RCLCPP_COMPONENTS_REGISTER_NODE(ros2_socketcan_bridge::SocketCanBridgeNode)
+}  // namespace nobleo_socketcan_bridge
+RCLCPP_COMPONENTS_REGISTER_NODE(nobleo_socketcan_bridge::SocketCanBridgeNode)

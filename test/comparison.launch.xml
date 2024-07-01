@@ -12,7 +12,7 @@ SPDX-License-Identifier: Apache-2.0
     <executable cmd="ros2 topic pub -r $(var rate) -p $(var rate)0 /to_can_bus can_msgs/msg/Frame '{id: 1}'"/>
     <executable cmd="ros2 topic pub -r $(var rate) -p $(var rate)0 /socketcan_bridge/tx can_msgs/msg/Frame '{id: 2}'"/>
 
-    <node name="socketcan_bridge" pkg="ros2_socketcan_bridge" exec="$(var node)">
+    <node name="socketcan_bridge" pkg="nobleo_socketcan_bridge" exec="$(var node)">
         <param name="interface" value="vcan0"/>
     </node>
 

@@ -19,7 +19,7 @@ class Node;
 class Clock;
 }  // namespace rclcpp
 
-namespace ros2_socketcan_bridge
+namespace nobleo_socketcan_bridge
 {
 class SocketCanBridge
 {
@@ -61,4 +61,4 @@ can_frame from_msg(const can_msgs::msg::Frame & msg);
 can_msgs::msg::Frame to_msg(const can_frame & frame);
 ;
 
-}  // namespace ros2_socketcan_bridge
+}  // namespace nobleo_socketcan_bridge

@@ -5,10 +5,10 @@
 #include <gtest/gtest.h>
 #include <linux/can.h>
 
-#include "ros2_socketcan_bridge/socketcan_bridge.hpp"
+#include "nobleo_socketcan_bridge/socketcan_bridge.hpp"
 
-using ros2_socketcan_bridge::from_msg;
-using ros2_socketcan_bridge::to_msg;
+using nobleo_socketcan_bridge::from_msg;
+using nobleo_socketcan_bridge::to_msg;
 
 TEST(from_msg, standard)
 {

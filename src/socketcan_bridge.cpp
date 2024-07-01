@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ros2_socketcan_bridge/socketcan_bridge.hpp"
+#include "nobleo_socketcan_bridge/socketcan_bridge.hpp"
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
@@ -15,7 +15,7 @@
 
 #include "rclcpp/logging.hpp"
 
-namespace ros2_socketcan_bridge
+namespace nobleo_socketcan_bridge
 {
 std::ostream & operator<<(std::ostream & os, const can_msgs::msg::Frame & msg)
 {
@@ -192,4 +192,4 @@ can_msgs::msg::Frame to_msg(const can_frame & frame)
   return msg;
 }
 
-}  // namespace ros2_socketcan_bridge
+}  // namespace nobleo_socketcan_bridge

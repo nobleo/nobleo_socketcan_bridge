@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include "nobleo_socketcan_bridge/socketcan_bridge.hpp"
 #include "rclcpp/node.hpp"
-#include "ros2_socketcan_bridge/socketcan_bridge.hpp"
 
-namespace ros2_socketcan_bridge
+namespace nobleo_socketcan_bridge
 {
 class SocketCanBridgeNode : public rclcpp::Node
 {
@@ -19,4 +19,4 @@ private:
   SocketCanBridge bridge;
   rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr can_sub;
 };
-}  // namespace ros2_socketcan_bridge
+}  // namespace nobleo_socketcan_bridge

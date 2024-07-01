@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.8)
-project(ros2_socketcan_bridge)
+project(nobleo_socketcan_bridge)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -37,7 +37,7 @@ target_link_libraries(socketcan_bridge_component fmt::fmt)
 
 rclcpp_components_register_node(
     socketcan_bridge_component
-    PLUGIN "ros2_socketcan_bridge::SocketCanBridgeNode"
+    PLUGIN "nobleo_socketcan_bridge::SocketCanBridgeNode"
     EXECUTABLE socketcan_bridge
 )
 

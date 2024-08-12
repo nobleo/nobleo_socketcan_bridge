@@ -14,8 +14,6 @@
 #include <sys/socket.h>
 
 #include <cmath>
-#include <cstring>
-#include <iostream>
 
 #include "rclcpp/logging.hpp"
 
@@ -179,11 +177,9 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
     if (msg.is_error) {
       // Based on data byte 1 select diagnostics level
       if (frame.data[1] & CAN_ERR_CRTL_RX_WARNING || frame.data[1] & CAN_ERR_CRTL_TX_WARNING) {
-        std::cout << "Warning level reached" << std::endl;
         state_ = CAN_STATE::WARN;
       } else if (
         frame.data[1] & CAN_ERR_CRTL_RX_PASSIVE || frame.data[1] & CAN_ERR_CRTL_TX_PASSIVE) {
-        std::cout << "Error level reached" << std::endl;
         state_ = CAN_STATE::ERROR;
       }
     }

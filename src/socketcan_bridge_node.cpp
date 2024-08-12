@@ -11,6 +11,7 @@ namespace nobleo_socketcan_bridge
 
 SocketCanBridgeNode::SocketCanBridgeNode(const rclcpp::NodeOptions & options)
 : rclcpp::Node("socketcan_bridge", options),
+  updater_(this, 1.0),
   can_pub(this->create_publisher<can_msgs::msg::Frame>("~/rx", 100)),
   bridge(
     this->get_logger(), this->get_clock(), this->declare_parameter("interface", "can0"),
@@ -19,6 +20,30 @@ SocketCanBridgeNode::SocketCanBridgeNode(const rclcpp::NodeOptions & options)
   can_sub(this->create_subscription<can_msgs::msg::Frame>(
     "~/tx", 100, [this](can_msgs::msg::Frame::ConstSharedPtr msg) { bridge.send(*msg); }))
 {
+  updater_.setHardwareID("SocketCan");
+  updater_.add("SocketCan", [this](auto & stat) { this->produceDiagnostics(stat); });
+}
+
+void SocketCanBridgeNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper & status)
+{
+  auto can_state = bridge.getState();
+  switch (can_state) {
+    case CAN_STATE::OKAY:
+      status.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "CAN interface is up");
+      break;
+    case CAN_STATE::WARN:
+      status.summary(
+        diagnostic_msgs::msg::DiagnosticStatus::WARN, "CAN interface is in warning state");
+      break;
+    case CAN_STATE::ERROR:
+      status.summary(
+        diagnostic_msgs::msg::DiagnosticStatus::ERROR, "CAN interface is in error state");
+      break;
+    case CAN_STATE::FATAL:
+      status.summary(
+        diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Error connecting to CAN interface");
+      break;
+  }
 }
 
 }  // namespace nobleo_socketcan_bridge

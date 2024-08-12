@@ -21,6 +21,14 @@ class Clock;
 
 namespace nobleo_socketcan_bridge
 {
+enum class CAN_STATE : uint8_t
+{
+  OKAY,
+  WARN,
+  ERROR,
+  FATAL
+};
+
 class SocketCanBridge
 {
 public:
@@ -39,6 +47,8 @@ public:
 
   void send(const can_msgs::msg::Frame & msg) const;
 
+  CAN_STATE getState() const { return state_; }
+
   void close();
 
 private:
@@ -54,6 +64,7 @@ private:
   int socket_;
   CanCallback receive_callback_;
   std::jthread receive_thread_;
+  CAN_STATE state_;
 };
 
 can_frame from_msg(const can_msgs::msg::Frame & msg);

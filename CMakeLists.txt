@@ -17,6 +17,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 find_package(can_msgs REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 find_package(fmt REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -30,6 +31,7 @@ target_include_directories(socketcan_bridge_component PUBLIC
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(socketcan_bridge_component
   can_msgs
+  diagnostic_updater
   rclcpp
   rclcpp_components
 )

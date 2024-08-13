@@ -157,7 +157,6 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
         RCLCPP_DEBUG(
           logger_, "Error reading from the socket: %s (%d)", strerror(errno),
           static_cast<int>(errno));
-        state_ = CanState::FATAL;
         continue;
       }
       RCLCPP_ERROR(

@@ -122,7 +122,7 @@ void SocketCanBridge::connect()
   }
 
   RCLCPP_INFO(logger_, "Connected to the CAN interface %s", interface_.c_str());
-  state_ = CAN_STATE::OKAY;
+  state_ = CanState::OKAY;
 }
 
 void SocketCanBridge::ensure_connection(std::stop_token stoken)
@@ -157,13 +157,13 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
         RCLCPP_DEBUG(
           logger_, "Error reading from the socket: %s (%d)", strerror(errno),
           static_cast<int>(errno));
-        state_ = CAN_STATE::FATAL;
+        state_ = CanState::FATAL;
         continue;
       }
       RCLCPP_ERROR(
         logger_, "Error reading from the socket: %s (%d), reconnecting in %.2f seconds ..",
         strerror(errno), static_cast<int>(errno), reconnect_timeout_);
-      state_ = CAN_STATE::FATAL;
+      state_ = CanState::FATAL;
       clock_->sleep_for(rclcpp::Duration::from_seconds(reconnect_timeout_));
       ensure_connection(stoken);
       continue;
@@ -177,10 +177,10 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
     if (msg.is_error) {
       // Based on data byte 1 select diagnostics level
       if (frame.data[1] & CAN_ERR_CRTL_RX_WARNING || frame.data[1] & CAN_ERR_CRTL_TX_WARNING) {
-        state_ = CAN_STATE::WARN;
+        state_ = CanState::WARN;
       } else if (
         frame.data[1] & CAN_ERR_CRTL_RX_PASSIVE || frame.data[1] & CAN_ERR_CRTL_TX_PASSIVE) {
-        state_ = CAN_STATE::ERROR;
+        state_ = CanState::ERROR;
       }
     }
     msg.header.stamp = clock_->now();

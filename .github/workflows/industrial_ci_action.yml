@@ -20,8 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         ROS_DISTRO:
-          - humble
           - iron
+          - jazzy
         ROS_REPO:
           - main
     env:

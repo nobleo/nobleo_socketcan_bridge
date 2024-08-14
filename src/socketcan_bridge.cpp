@@ -7,6 +7,8 @@
 #include <fmt/core.h>
 #include <fmt/ostream.h>
 #include <linux/can.h>
+#include <linux/can/error.h>
+#include <linux/can/raw.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -94,6 +96,16 @@ void SocketCanBridge::connect()
     throw std::system_error(errno, std::generic_category());
   }
 
+  can_err_mask_t error_mask =
+    (CAN_ERR_BUSOFF      /* bus off */
+     | CAN_ERR_RESTARTED /* controller restarted */
+     | CAN_ERR_CRTL      /* controller problems / data[1]    */
+    );
+  if (setsockopt(socket_, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &error_mask, sizeof(error_mask)) < 0) {
+    RCLCPP_ERROR(logger_, "Error setting error mask");
+    throw std::system_error(errno, std::generic_category());
+  }
+
   ifreq ifr;
   strncpy(ifr.ifr_name, interface_.c_str(), sizeof(ifr.ifr_name));
   if (ioctl(socket_, SIOCGIFINDEX, &ifr) < 0) {
@@ -110,6 +122,7 @@ void SocketCanBridge::connect()
   }
 
   RCLCPP_INFO(logger_, "Connected to the CAN interface %s", interface_.c_str());
+  state_ = CanState::OKAY;
 }
 
 void SocketCanBridge::ensure_connection(std::stop_token stoken)
@@ -149,6 +162,7 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
       RCLCPP_ERROR(
         logger_, "Error reading from the socket: %s (%d), reconnecting in %.2f seconds ..",
         strerror(errno), static_cast<int>(errno), reconnect_timeout_);
+      state_ = CanState::FATAL;
       clock_->sleep_for(rclcpp::Duration::from_seconds(reconnect_timeout_));
       ensure_connection(stoken);
       continue;
@@ -159,6 +173,15 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
     }
 
     auto msg = to_msg(frame);
+    if (msg.is_error) {
+      // Based on data byte 1 select diagnostics level
+      if (frame.data[1] & CAN_ERR_CRTL_RX_WARNING || frame.data[1] & CAN_ERR_CRTL_TX_WARNING) {
+        state_ = CanState::WARN;
+      } else if (
+        frame.data[1] & CAN_ERR_CRTL_RX_PASSIVE || frame.data[1] & CAN_ERR_CRTL_TX_PASSIVE) {
+        state_ = CanState::ERROR;
+      }
+    }
     msg.header.stamp = clock_->now();
 
     RCLCPP_DEBUG_STREAM(logger_, "Received " << msg);
@@ -170,6 +193,7 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
 can_frame from_msg(const can_msgs::msg::Frame & msg)
 {
   canid_t id = msg.id;
+
   if (msg.is_rtr) id |= CAN_RTR_FLAG;
   if (msg.is_extended) id |= CAN_EFF_FLAG;
   if (msg.is_error) id |= CAN_ERR_FLAG;

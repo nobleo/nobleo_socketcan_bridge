@@ -21,6 +21,7 @@ namespace nobleo_socketcan_bridge
 {
 std::ostream & operator<<(std::ostream & os, const can_msgs::msg::Frame & msg)
 {
+  // fmt::print is not functional: https://github.com/fmtlib/fmt/issues/3382
   os << fmt::format(
     "{:0>3X} [{}] {}", msg.id, msg.dlc,
     fmt::join(msg.data.begin(), msg.data.begin() + msg.dlc, " "));

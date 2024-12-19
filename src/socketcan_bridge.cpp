@@ -21,10 +21,9 @@ namespace nobleo_socketcan_bridge
 {
 std::ostream & operator<<(std::ostream & os, const can_msgs::msg::Frame & msg)
 {
-  fmt::print(os, "{:0>3X} [{}]", msg.id, msg.dlc);
-  for (auto i = 0; i < msg.dlc; ++i) {
-    fmt::print(os, " {:0>2X}", msg.data[i]);
-  }
+  os << fmt::format(
+    "{:0>3X} [{}] {}", msg.id, msg.dlc,
+    fmt::join(msg.data.begin(), msg.data.begin() + msg.dlc, " "));
   return os;
 }
 

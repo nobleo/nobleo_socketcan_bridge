@@ -70,6 +70,5 @@ private:
 can_frame from_msg(const can_msgs::msg::Frame & msg);
 
 can_msgs::msg::Frame to_msg(const can_frame & frame);
-;
 
 }  // namespace nobleo_socketcan_bridge

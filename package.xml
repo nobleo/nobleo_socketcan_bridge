@@ -17,7 +17,8 @@ SPDX-License-Identifier: Apache-2.0
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>ament_cmake_ros</depend>
+  <build_depend>ament_cmake_ros</build_depend>
+
   <depend>can_msgs</depend>
   <depend>diagnostic_msgs</depend>
   <depend>diagnostic_updater</depend>

@@ -4,6 +4,7 @@
 
 #include "nobleo_socketcan_bridge/socketcan_bridge_node.hpp"
 
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
 namespace nobleo_socketcan_bridge

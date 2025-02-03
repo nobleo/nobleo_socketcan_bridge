@@ -175,10 +175,9 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
     auto msg = to_msg(frame);
     if (msg.is_error) {
       // Based on data byte 1 select diagnostics level
-      if (frame.data[1] & CAN_ERR_CRTL_RX_WARNING || frame.data[1] & CAN_ERR_CRTL_TX_WARNING) {
+      if ((frame.data[1] & (CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING)) != 0) {
         state_ = CanState::WARN;
-      } else if (
-        frame.data[1] & CAN_ERR_CRTL_RX_PASSIVE || frame.data[1] & CAN_ERR_CRTL_TX_PASSIVE) {
+      } else if ((frame.data[1] & (CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE)) != 0) {
         state_ = CanState::ERROR;
       }
     }
@@ -201,7 +200,7 @@ can_frame from_msg(const can_msgs::msg::Frame & msg)
   can_frame frame;
   frame.can_id = id;
   frame.len = msg.dlc;
-  std::copy(msg.data.begin(), msg.data.end(), frame.data);
+  std::ranges::copy(msg.data, frame.data);
   return frame;
 }
 

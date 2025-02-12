@@ -6,7 +6,7 @@
 Changelog for package nobleo_socketcan_bridge
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2025-02-12)
+------------------
 * First release
 * Contributors: Ramon Wijnands, dkorenkovnl, Rein Appeldoorn, Ferry Schoenmakers, Tim Clephas

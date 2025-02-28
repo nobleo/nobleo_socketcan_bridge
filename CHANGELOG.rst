@@ -6,6 +6,12 @@
 Changelog for package nobleo_socketcan_bridge
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Disable clang_format on humble
+  This version of clang_format has a different output.
+* Contributors: Ramon Wijnands
+
 1.0.0 (2025-02-12)
 ------------------
 * First release

@@ -64,7 +64,7 @@ private:
   int socket_;
   CanCallback receive_callback_;
   std::jthread receive_thread_;
-  CanState state_;
+  std::atomic<CanState> state_;
 };
 
 can_frame from_msg(const can_msgs::msg::Frame & msg);

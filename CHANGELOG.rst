@@ -6,8 +6,8 @@
 Changelog for package nobleo_socketcan_bridge
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.2 (2025-04-02)
+------------------
 * fix: make `state_` atomic
   It is accessed from the main thread and updated via the receiver thread.
 * Add url to the package.xml

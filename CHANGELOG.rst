@@ -6,8 +6,8 @@
 Changelog for package nobleo_socketcan_bridge
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.3 (2025-05-21)
+------------------
 * Remove deprecated call to ament_target_dependencies
 * Bump minimum CMake version to avoid compatiility warning
 * Contributors: Ramon Wijnands

@@ -30,14 +30,14 @@ add_library(socketcan_bridge_component
 target_include_directories(socketcan_bridge_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(socketcan_bridge_component
-  can_msgs
-  diagnostic_msgs
-  diagnostic_updater
-  rclcpp
-  rclcpp_components
+target_link_libraries(socketcan_bridge_component
+  ${can_msgs_TARGETS}
+  ${diagnostic_msgs_TARGETS}
+  diagnostic_updater::diagnostic_updater
+  fmt::fmt
+  rclcpp::rclcpp
+  rclcpp_components::component
 )
-target_link_libraries(socketcan_bridge_component fmt::fmt)
 
 rclcpp_components_register_node(
     socketcan_bridge_component

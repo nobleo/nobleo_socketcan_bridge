@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.12)
 project(nobleo_socketcan_bridge)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

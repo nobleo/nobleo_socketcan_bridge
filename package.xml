@@ -13,6 +13,7 @@ SPDX-License-Identifier: Apache-2.0
   <description>Simple wrapper around SocketCAN</description>
   <maintainer email="ramon.wijnands@nobleo.nl">Ramon Wijnands</maintainer>
   <license>Apache-2.0</license>
+  <url type="website">https://github.com/nobleo/nobleo_socketcan_bridge</url>
   <url type="repository">https://github.com/nobleo/nobleo_socketcan_bridge</url>
   <url type="bugtracker">https://github.com/nobleo/nobleo_socketcan_bridge/issues</url>
   <author email="ramon.wijnands@nobleo.nl">Ramon Wijnands</author>
@@ -32,8 +33,6 @@ SPDX-License-Identifier: Apache-2.0
 
   <!-- Linters -->
   <test_depend condition="$ROS_DISTRO != humble">ament_cmake_clang_format</test_depend>
-  <!-- <test_depend>ament_cmake_clang_tidy</test_depend> -->
-  <!-- <test_depend>ament_cmake_copyright</test_depend> -->
   <test_depend>ament_cmake_cppcheck</test_depend>
   <test_depend>ament_cmake_cpplint</test_depend>
   <test_depend>ament_cmake_lint_cmake</test_depend>

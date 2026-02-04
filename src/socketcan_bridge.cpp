@@ -120,7 +120,7 @@ void SocketCanBridge::connect()
 
   RCLCPP_INFO(logger_, "Connected to the CAN interface %s", interface_.c_str());
   std::scoped_lock lock(state_mtx_);
-  state_.state = CanState::OKAY;
+  state_ = CanStateDetailed();
 }
 
 void SocketCanBridge::ensure_connection(std::stop_token stoken)

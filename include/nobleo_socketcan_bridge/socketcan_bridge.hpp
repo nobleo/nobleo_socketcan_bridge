@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <thread>
 
@@ -29,6 +30,16 @@ enum class CanState
   FATAL
 };
 
+struct CanStateDetailed
+{
+  CanState state;
+  std::string error_class;
+  std::string controller_error;
+  std::string protocol_error;
+  int tx_error_counter;
+  int rx_error_counter;
+};
+
 class SocketCanBridge
 {
 public:
@@ -47,7 +58,11 @@ public:
 
   void send(const can_msgs::msg::Frame & msg) const;
 
-  CanState getState() const { return state_; }
+  CanStateDetailed getState() const
+  {
+    std::scoped_lock lock(state_mtx_);
+    return state_;
+  }
 
   void close();
 
@@ -55,6 +70,7 @@ private:
   void connect();
   void ensure_connection(std::stop_token stoken);
   void receive_loop(std::stop_token stoken);
+  void handle_error_frame(const can_frame & frame);
 
   rclcpp::Logger logger_;
   rclcpp::Clock::SharedPtr clock_;
@@ -64,7 +80,8 @@ private:
   int socket_;
   CanCallback receive_callback_;
   std::jthread receive_thread_;
-  std::atomic<CanState> state_;
+  mutable std::mutex state_mtx_;
+  CanStateDetailed state_;
 };
 
 can_frame from_msg(const can_msgs::msg::Frame & msg);

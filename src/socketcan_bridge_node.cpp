@@ -28,7 +28,7 @@ SocketCanBridgeNode::SocketCanBridgeNode(const rclcpp::NodeOptions & options)
 void SocketCanBridgeNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper & status)
 {
   auto can_state = bridge.getState();
-  switch (can_state) {
+  switch (can_state.state) {
     case CanState::OKAY:
       status.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "CAN interface is up");
       break;
@@ -45,6 +45,12 @@ void SocketCanBridgeNode::produceDiagnostics(diagnostic_updater::DiagnosticStatu
         diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Error connecting to CAN interface");
       break;
   }
+
+  status.add("Error class", can_state.error_class);
+  status.add("Controller error", can_state.controller_error);
+  status.add("Protocol error", can_state.protocol_error);
+  status.add("TX error counter", can_state.tx_error_counter);
+  status.add("RX error counter", can_state.rx_error_counter);
 }
 
 }  // namespace nobleo_socketcan_bridge

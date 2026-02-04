@@ -32,12 +32,12 @@ enum class CanState
 
 struct CanStateDetailed
 {
-  CanState state;
-  std::string error_class;
-  std::string controller_error;
-  std::string protocol_error;
-  int tx_error_counter;
-  int rx_error_counter;
+  CanState state = CanState::OKAY;
+  std::string error_class = "";
+  std::string controller_error = "";
+  std::string protocol_error = "";
+  int tx_error_counter = 0;
+  int rx_error_counter = 0;
 };
 
 class SocketCanBridge

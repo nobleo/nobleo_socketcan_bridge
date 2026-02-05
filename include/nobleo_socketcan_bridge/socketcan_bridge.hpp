@@ -70,7 +70,6 @@ private:
   void connect();
   void ensure_connection(std::stop_token stoken);
   void receive_loop(std::stop_token stoken);
-  void handle_error_frame(const can_frame & frame);
 
   rclcpp::Logger logger_;
   rclcpp::Clock::SharedPtr clock_;
@@ -83,6 +82,8 @@ private:
   mutable std::mutex state_mtx_;
   CanStateDetailed state_;
 };
+
+CanStateDetailed handle_error_frame(const can_frame & frame);
 
 can_frame from_msg(const can_msgs::msg::Frame & msg);
 

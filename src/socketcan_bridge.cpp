@@ -97,11 +97,8 @@ void SocketCanBridge::connect()
     throw std::system_error(errno, std::generic_category());
   }
 
-  can_err_mask_t error_mask =
-    (CAN_ERR_BUSOFF      /* bus off */
-     | CAN_ERR_RESTARTED /* controller restarted */
-     | CAN_ERR_CRTL      /* controller problems / data[1]    */
-    );
+  // Request the full error_mask to produce detailed diagnostics
+  can_err_mask_t error_mask = CAN_ERR_MASK;
   if (setsockopt(socket_, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &error_mask, sizeof(error_mask)) < 0) {
     RCLCPP_ERROR(logger_, "Error setting error mask");
     throw std::system_error(errno, std::generic_category());
@@ -123,7 +120,8 @@ void SocketCanBridge::connect()
   }
 
   RCLCPP_INFO(logger_, "Connected to the CAN interface %s", interface_.c_str());
-  state_ = CanState::OKAY;
+  std::scoped_lock lock(state_mtx_);
+  state_ = CanStateDetailed();
 }
 
 void SocketCanBridge::ensure_connection(std::stop_token stoken)
@@ -163,7 +161,10 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
       RCLCPP_ERROR(
         logger_, "Error reading from the socket: %s (%d), reconnecting in %.2f seconds ..",
         strerror(errno), static_cast<int>(errno), reconnect_timeout_);
-      state_ = CanState::FATAL;
+      {
+        std::scoped_lock lock(state_mtx_);
+        state_.state = CanState::CONNECTION_ERROR;
+      }
       clock_->sleep_for(rclcpp::Duration::from_seconds(reconnect_timeout_));
       ensure_connection(stoken);
       continue;
@@ -173,21 +174,74 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
       continue;
     }
 
-    auto msg = to_msg(frame);
-    if (msg.is_error) {
-      // Based on data byte 1 select diagnostics level
-      if ((frame.data[1] & (CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING)) != 0) {
-        state_ = CanState::WARN;
-      } else if ((frame.data[1] & (CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE)) != 0) {
-        state_ = CanState::ERROR;
-      }
+    // On error frames, update the state-struct and don't forward as ROS message
+    if (frame.can_id & CAN_ERR_FLAG) {
+      std::scoped_lock lock(state_mtx_);
+      state_ = handle_error_frame(frame);
+      continue;
     }
+    auto msg = to_msg(frame);
     msg.header.stamp = clock_->now();
 
     RCLCPP_DEBUG_STREAM(logger_, "Received " << msg);
     receive_callback_(msg);
   }
   RCLCPP_INFO(logger_, "Receive loop stopped");
+}
+
+CanStateDetailed handle_error_frame(const can_frame & frame)
+{
+  CanStateDetailed state;
+  // 1. Determine Error Class from CAN ID
+  uint32_t err_class = frame.can_id & CAN_ERR_MASK;
+  if (err_class & CAN_ERR_TX_TIMEOUT) state.error_class += " TX_TIMEOUT |";
+  if (err_class & CAN_ERR_LOSTARB) state.error_class += " LOST_ARBITRATION |";
+  if (err_class & CAN_ERR_CRTL) state.error_class += " CONTROLLER_ERROR |";
+  if (err_class & CAN_ERR_PROT) state.error_class += " PROTOCOL_VIOLATION |";
+  if (err_class & CAN_ERR_TRX) state.error_class += " TRANSCEIVER_ERROR |";
+  if (err_class & CAN_ERR_ACK) state.error_class += " NO_ACK |";
+  if (err_class & CAN_ERR_BUSOFF) state.error_class += " BUS_OFF |";
+  if (err_class & CAN_ERR_BUSERROR) state.error_class += " BUS_ERROR |";
+  if (err_class & CAN_ERR_RESTARTED) state.error_class += " CONTROLLER_RESTARTED |";
+
+  // 2. Decode Specific Details from Data Bytes
+  // Byte 1: Controller problems
+  if (err_class & CAN_ERR_CRTL) {
+    uint8_t ctrl = frame.data[1];
+    if (ctrl & CAN_ERR_CRTL_RX_OVERFLOW) state.controller_error += " RX Buffer Overflow |";
+    if (ctrl & CAN_ERR_CRTL_TX_OVERFLOW) state.controller_error += " TX Buffer Overflow |";
+    if (ctrl & CAN_ERR_CRTL_RX_WARNING) state.controller_error += " RX Error Warning |";
+    if (ctrl & CAN_ERR_CRTL_TX_WARNING) state.controller_error += " TX Error Warning |";
+    if (ctrl & CAN_ERR_CRTL_RX_PASSIVE) state.controller_error += " RX Error Passive |";
+    if (ctrl & CAN_ERR_CRTL_TX_PASSIVE) state.controller_error += " TX Error Passive |";
+
+    // Set diagnostics level based on this
+    if ((ctrl & (CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING)) != 0) {
+      state.state = CanState::WARN;
+    } else if ((ctrl & (CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE)) != 0) {
+      state.state = CanState::ERROR;
+    }
+  }
+
+  // Byte 2: Protocol violation type
+  if (err_class & CAN_ERR_PROT) {
+    uint8_t prot = frame.data[2];
+    if (prot & CAN_ERR_PROT_BIT) state.protocol_error += " Type: Bit Error |";
+    if (prot & CAN_ERR_PROT_FORM) state.protocol_error += " Type: Form Error |";
+    if (prot & CAN_ERR_PROT_STUFF) state.protocol_error += " Type: Stuff Error |";
+    if (prot & CAN_ERR_PROT_BIT0) state.protocol_error += " Type: Bit0 Error (Sent 1, saw 0) |";
+    if (prot & CAN_ERR_PROT_BIT1) state.protocol_error += " Type: Bit1 Error (Sent 0, saw 1) |";
+    if (prot & CAN_ERR_PROT_TX)
+      state.protocol_error += " Direction: Transmit |";
+    else
+      state.protocol_error += " Direction: Receive |";
+  }
+
+  // 3. Hardware Error Counters
+  state.tx_error_counter = frame.data[6];
+  state.rx_error_counter = frame.data[7];
+
+  return state;
 }
 
 can_frame from_msg(const can_msgs::msg::Frame & msg)

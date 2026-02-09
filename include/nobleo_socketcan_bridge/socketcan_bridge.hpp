@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <thread>
 
@@ -26,7 +27,17 @@ enum class CanState
   OKAY,
   WARN,
   ERROR,
-  FATAL
+  CONNECTION_ERROR
+};
+
+struct CanStateDetailed
+{
+  CanState state = CanState::OKAY;
+  std::string error_class = "";
+  std::string controller_error = "";
+  std::string protocol_error = "";
+  int tx_error_counter = 0;
+  int rx_error_counter = 0;
 };
 
 class SocketCanBridge
@@ -47,7 +58,11 @@ public:
 
   void send(const can_msgs::msg::Frame & msg) const;
 
-  CanState getState() const { return state_; }
+  CanStateDetailed getState() const
+  {
+    std::scoped_lock lock(state_mtx_);
+    return state_;
+  }
 
   void close();
 
@@ -64,8 +79,11 @@ private:
   int socket_;
   CanCallback receive_callback_;
   std::jthread receive_thread_;
-  std::atomic<CanState> state_;
+  mutable std::mutex state_mtx_;
+  CanStateDetailed state_;
 };
+
+CanStateDetailed handle_error_frame(const can_frame & frame);
 
 can_frame from_msg(const can_msgs::msg::Frame & msg);
 

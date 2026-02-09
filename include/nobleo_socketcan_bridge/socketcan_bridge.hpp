@@ -27,7 +27,7 @@ enum class CanState
   OKAY,
   WARN,
   ERROR,
-  FATAL
+  CONNECTION_ERROR
 };
 
 struct CanStateDetailed

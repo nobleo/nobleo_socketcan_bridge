@@ -40,7 +40,7 @@ void SocketCanBridgeNode::produceDiagnostics(diagnostic_updater::DiagnosticStatu
       status.summary(
         diagnostic_msgs::msg::DiagnosticStatus::ERROR, "CAN interface is in error state");
       break;
-    case CanState::FATAL:
+    case CanState::CONNECTION_ERROR:
       status.summary(
         diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Error connecting to CAN interface");
       break;

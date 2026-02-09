@@ -162,7 +162,7 @@ void SocketCanBridge::receive_loop(std::stop_token stoken)
         strerror(errno), static_cast<int>(errno), reconnect_timeout_);
       {
         std::scoped_lock lock(state_mtx_);
-        state_.state = CanState::FATAL;
+        state_.state = CanState::CONNECTION_ERROR;
       }
       clock_->sleep_for(rclcpp::Duration::from_seconds(reconnect_timeout_));
       ensure_connection(stoken);

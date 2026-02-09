@@ -6,8 +6,8 @@
 Changelog for package nobleo_socketcan_bridge
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.4 (2026-02-09)
+------------------
 * Add extensive CAN diagnostics (`#26 <https://github.com/nobleo/nobleo_socketcan_bridge/issues/26>`_)
   Instead of only okay/warn/error level, we can now also show more detailed diagnostics, error counters and reasons for errors.
 * Fix `#include <linux/can.h>` and `fmt::join`
